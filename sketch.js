@@ -18,7 +18,7 @@ const slowSpinSpeed = 0.025;
 const fastSpinSpeed = 0.15;
 const sphereRotationSpeed = 0.02;
 
-const oOuterRadius = 50 + 40; 
+const oOuterRadius = 50 + 40;
 const initialShellGap = 200;
 const bondedShellOverlap = 28;
 const bondDistance = (oOuterRadius * 2) - bondedShellOverlap;
@@ -89,7 +89,7 @@ function createUI() {
     overlapButton = createButton("Bật xen phủ");
     styleButton(overlapButton);
     overlapButton.mousePressed(() => {
-        if (state === "done") {
+        if (state === "done" || state === "sphere_spinning") {
             state = "overlap_spinning";
             overlapButton.html("Tắt xen phủ");
             sphereButton.html("Bật lớp cầu");
@@ -113,7 +113,7 @@ function createUI() {
             if (state === "overlap_spinning") {
                 overlapButton.html("Tắt xen phủ");
             } else {
-                overlapButton.html("Bật lớp cầu");
+                overlapButton.html("Bật xen phủ");
             }
         }
     });
@@ -284,14 +284,14 @@ function draw() {
 
     atoms[0].pos.x = -currentDist / 2;
     atoms[1].pos.x = currentDist / 2;
-    
+
     for (let atom of atoms) {
         push();
         translate(atom.pos.x, atom.pos.y, 0);
         atom.show();
         pop();
     }
-    
+
     if (showLabels) {
         for (let atom of atoms) {
             atom.drawLabel();
@@ -307,9 +307,9 @@ function draw() {
 }
 
 function drawElectronClouds() {
-    // Giảm bán kính chính của torus
+    // Giảm độ dày lớp xen phủ
     const cloudRadius = atoms[0].shellRadii[1] - 10;
-    const cloudWidth = 15;
+    const cloudWidth = 10;
 
     let blendedColor = lerpColor(color(255, 165, 0), color(100, 255, 255), 0.5);
     blendedColor.setAlpha(255);
@@ -400,7 +400,7 @@ class Atom {
 
             this.electronSpinSpeeds.push(slowSpinSpeed);
         }
-        
+
         const outerShellIndex = this.shells.length - 1;
         this.electronSpinSpeeds[outerShellIndex] = fastSpinSpeed;
 
@@ -412,7 +412,7 @@ class Atom {
             }
         }
     }
-    
+
     drawLabel() {
         push();
         fill(255);
@@ -444,6 +444,10 @@ class Atom {
         pop();
 
         for (let i = 0; i < this.shells.length; i++) {
+            // New condition to hide the second shell (index 1) when overlap or sphere mode is active
+            if ((state === "overlap_spinning" || state === "sphere_spinning") && i === 1) {
+                continue; // Skip drawing this shell
+            }
             noFill();
             stroke(255);
             strokeWeight(1);
@@ -474,7 +478,7 @@ class Atom {
 
         for (let i = 0; i < this.shells.length; i++) {
             let radius = this.shellRadii[i];
-            
+
             if ((state === "overlap_spinning" || state === "sphere_spinning") && i === outerShellIndex) {
                 continue;
             }
@@ -482,7 +486,7 @@ class Atom {
             for (let j = 0; j < this.shells[i].length; j++) {
                 let e = this.shells[i][j];
                 let ex, ey;
-                
+
                 if (state === "idle" || state === "animating") {
                     e.angle += slowSpinSpeed;
                     ex = cos(e.angle) * radius;
@@ -493,7 +497,7 @@ class Atom {
                         ex = cos(e.angle) * radius;
                         ey = sin(e.angle) * radius;
                     } else {
-                        let t_bonding = easeInOutQuad(bondingProgress); 
+                        let t_bonding = easeInOutQuad(bondingProgress);
                         let initialAngle = (TWO_PI / this.shells[i].length) * j;
                         let initialX = cos(initialAngle) * radius;
                         let initialY = sin(initialAngle) * radius;
