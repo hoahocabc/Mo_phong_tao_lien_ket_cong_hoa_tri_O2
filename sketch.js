@@ -336,32 +336,27 @@ function drawElectronSpheres() {
     clSphereRotation2 += sphereRotationSpeed;
 
     const oOrbitalRadius = atoms[0].shellRadii[1] + 6;
+    const sphereDetail = 48; // Tăng giá trị này để mặt cầu mượt hơn
 
     let blendedSphereColor = lerpColor(color(255, 165, 0), color(100, 255, 255), 0.5);
     blendedSphereColor.setAlpha(255);
 
+    // Mặt cầu thứ nhất
     push();
     translate(atoms[0].pos.x, atoms[0].pos.y, 0);
     rotateY(clSphereRotation1);
-    noStroke();
+    noStroke(); // Bỏ đường viền
     fill(blendedSphereColor);
-    sphere(oOrbitalRadius);
-    stroke(255);
-    strokeWeight(0.75);
-    noFill();
-    sphere(oOrbitalRadius);
+    sphere(oOrbitalRadius, sphereDetail, sphereDetail); // Tăng độ chi tiết
     pop();
 
+    // Mặt cầu thứ hai
     push();
     translate(atoms[1].pos.x, atoms[1].pos.y, 0);
     rotateY(clSphereRotation2);
-    noStroke();
+    noStroke(); // Bỏ đường viền
     fill(blendedSphereColor);
-    sphere(oOrbitalRadius);
-    stroke(255);
-    strokeWeight(0.75);
-    noFill();
-    sphere(oOrbitalRadius);
+    sphere(oOrbitalRadius, sphereDetail, sphereDetail); // Tăng độ chi tiết
     pop();
 }
 
