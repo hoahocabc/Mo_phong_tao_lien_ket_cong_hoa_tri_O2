@@ -80,12 +80,6 @@ function createUI() {
         }
     });
 
-    resetButton = createButton("↺ Reset");
-    styleButton(resetButton);
-    resetButton.mousePressed(() => {
-        resetSimulation();
-    });
-
     overlapButton = createButton("Bật xen phủ");
     styleButton(overlapButton);
     overlapButton.mousePressed(() => {
@@ -123,6 +117,12 @@ function createUI() {
     labelButton.mousePressed(() => {
         showLabels = !showLabels;
         labelButton.html(showLabels ? "Tắt nhãn" : "Bật nhãn");
+    });
+    
+    resetButton = createButton("↺ Reset");
+    styleButton(resetButton);
+    resetButton.mousePressed(() => {
+        resetSimulation();
     });
 
     instructionsButton = createButton("Hướng dẫn");
@@ -207,10 +207,10 @@ function styleButton(btn, isTransparent = false) {
 
 function positionButtons() {
     playButton.position(20, 20);
-    resetButton.position(20, 60);
-    overlapButton.position(20, 100);
-    sphereButton.position(20, 140);
-    labelButton.position(20, 180);
+    overlapButton.position(20, 60);
+    sphereButton.position(20, 100);
+    labelButton.position(20, 140);
+    resetButton.position(20, 180);
     instructionsButton.position(20, 220);
 }
 
