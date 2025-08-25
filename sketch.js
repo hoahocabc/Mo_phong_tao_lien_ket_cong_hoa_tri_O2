@@ -2,7 +2,7 @@
 // Tác giả: Gemini
 
 let fontRegular;
-let playButton, resetButton, instructionsButton, overlapButton, sphereButton, labelButton;
+let playButton, resetButton, instructionsButton, overlapButton, sphereButton, labelButton, spinButton;
 let titleDiv, footerDiv, instructionsPopup;
 let atoms = [];
 let state = "idle";
@@ -12,6 +12,7 @@ let cloudRotationAngle = 0;
 let clSphereRotation1 = 0;
 let clSphereRotation2 = 0;
 let showLabels = true;
+let spinOn = true;
 let previousState = "idle";
 
 const slowSpinSpeed = 0.025;
@@ -80,6 +81,14 @@ function createUI() {
         }
     });
 
+    // Nút mới
+    spinButton = createButton("Tắt quay electron");
+    styleButton(spinButton);
+    spinButton.mousePressed(() => {
+        spinOn = !spinOn;
+        spinButton.html(spinOn ? "Tắt quay electron" : "Bật quay electron");
+    });
+
     overlapButton = createButton("Bật xen phủ");
     styleButton(overlapButton);
     overlapButton.mousePressed(() => {
@@ -122,7 +131,7 @@ function createUI() {
     resetButton = createButton("↺ Reset");
     styleButton(resetButton);
     resetButton.mousePressed(() => {
-        resetSimulation();
+        window.location.reload();
     });
 
     instructionsButton = createButton("Hướng dẫn");
@@ -170,7 +179,7 @@ function createUI() {
 }
 
 function styleButton(btn, isTransparent = false) {
-    btn.style("width", "100px");
+    btn.style("width", "130px");
     btn.style("height", "30px");
     btn.style("padding", "0px");
     btn.style("font-size", "12px");
@@ -207,17 +216,20 @@ function styleButton(btn, isTransparent = false) {
 
 function positionButtons() {
     playButton.position(20, 20);
-    overlapButton.position(20, 60);
-    sphereButton.position(20, 100);
-    labelButton.position(20, 140);
-    resetButton.position(20, 180);
-    instructionsButton.position(20, 220);
+    spinButton.position(20, 60); // Vị trí mới
+    overlapButton.position(20, 100);
+    sphereButton.position(20, 140);
+    labelButton.position(20, 180);
+    resetButton.position(20, 220);
+    instructionsButton.position(20, 260);
 }
 
 function resetSimulation() {
     atoms = [];
     showLabels = true;
+    spinOn = true;
     labelButton.html("Tắt nhãn");
+    spinButton.html("Tắt quay electron");
 
     atoms.push(new Atom(-initialDistance / 2, 0, "O", 8, [2, 6], color(255, 165, 0)));
     atoms.push(new Atom(initialDistance / 2, 0, "O", 8, [2, 6], color(100, 255, 255)));
@@ -483,12 +495,16 @@ class Atom {
                 let ex, ey;
 
                 if (state === "idle" || state === "animating") {
-                    e.angle += slowSpinSpeed;
+                    if (spinOn) {
+                        e.angle += slowSpinSpeed;
+                    }
                     ex = cos(e.angle) * radius;
                     ey = sin(e.angle) * radius;
                 } else {
                     if (i < outerShellIndex) {
-                        e.angle += this.electronSpinSpeeds[i];
+                        if (spinOn) {
+                            e.angle += this.electronSpinSpeeds[i];
+                        }
                         ex = cos(e.angle) * radius;
                         ey = sin(e.angle) * radius;
                     } else {
