@@ -1,6 +1,3 @@
-// Mô phỏng liên kết cộng hóa trị của phân tử O2
-// Tác giả: Gemini
-
 let fontRegular;
 let playButton, resetButton, instructionsButton, overlapButton, sphereButton, labelButton, spinButton;
 let titleDiv, footerDiv, instructionsPopup;
@@ -44,7 +41,7 @@ function setup() {
     textAlign(CENTER, CENTER);
     noStroke();
 
-    titleDiv = createDiv("MÔ PHỎNG LIÊN KẾT CỘNG HOÁ TRỊ O₂");
+    titleDiv = createDiv("MÔ PHỎNG LIÊN KẾT CỘNG HOÁ TRỊ TRONG PHÂN TỬ O₂");
     titleDiv.style("position", "absolute");
     titleDiv.style("top", "10px");
     titleDiv.style("width", "100%");
@@ -171,9 +168,15 @@ function createUI() {
     `;
     instructionsPopup.html(popupContent);
 
-    document.getElementById('closePopup').addEventListener('click', () => {
-        instructionsPopup.style('display', 'none');
-    });
+    // Attach event listener to close button inside the popup (ensure it exists)
+    setTimeout(() => {
+        const closeBtn = document.getElementById('closePopup');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                instructionsPopup.style('display', 'none');
+            });
+        }
+    }, 50);
 
     positionButtons();
 }
@@ -267,8 +270,13 @@ function draw() {
 
     translate(panX, panY);
 
+    // Global ambient (keeps scene visible)
     ambientLight(80);
-    pointLight(255, 255, 255, 0, 0, 300);
+
+    // REMOVE fixed pointLight when sphere layer is active so spheres rely on moving directional lights only.
+    if (state !== "sphere_spinning") {
+        pointLight(255, 255, 255, 0, 0, 300);
+    }
 
     let currentDist;
     if (state === "idle" || (state === "sphere_spinning" && previousState === "idle")) {
@@ -344,31 +352,59 @@ function drawElectronClouds() {
 }
 
 function drawElectronSpheres() {
+    // Updated lighting and material behavior inspired by File 1.
+    // Purpose: create controlled, moving light sources with fixed color appearance for spheres.
     clSphereRotation1 += sphereRotationSpeed;
     clSphereRotation2 += sphereRotationSpeed;
 
     const oOrbitalRadius = atoms[0].shellRadii[1] + 6;
-    const sphereDetail = 48; // Tăng giá trị này để mặt cầu mượt hơn
+    const sphereDetail = 48; // smoothness of the sphere geometry
 
     let blendedSphereColor = lerpColor(color(255, 165, 0), color(100, 255, 255), 0.5);
     blendedSphereColor.setAlpha(255);
 
-    // Mặt cầu thứ nhất
+    // LIGHT SETUP (two moving directional lights + ambient) — based on File 1 approach
+    // Slightly stronger ambient so spheres remain visible and color remains stable
+    ambientLight(80);
+
+    // Light A: slower, wider orbit (soft fill) — raised intensity for clearer highlights
+    let aA = frameCount * 0.010;
+    let LAx = cos(aA) * 380;
+    let LAy = sin(aA) * 240;
+    directionalLight(140, 140, 140, LAx, LAy, -0.25);
+
+    // Light B: faster, tighter orbit and different phase (secondary fill)
+    let aB = frameCount * 0.018 + PI / 4;
+    let LBx = cos(aB) * 210;
+    let LBy = sin(aB) * 170;
+    directionalLight(90, 90, 90, -LBx, -LBy, 0.2);
+
+    // Render both spheres with consistent color regardless of frame-to-frame lighting changes.
+    // Use ambientMaterial to preserve base color and specularMaterial for subtle highlights.
+    const r = red(blendedSphereColor);
+    const g = green(blendedSphereColor);
+    const b = blue(blendedSphereColor);
+
+    // Sphere for atom 0
     push();
     translate(atoms[0].pos.x, atoms[0].pos.y, 0);
     rotateY(clSphereRotation1);
-    noStroke(); // Bỏ đường viền
-    fill(blendedSphereColor);
-    sphere(oOrbitalRadius, sphereDetail, sphereDetail); // Tăng độ chi tiết
+    noStroke();
+    shininess(85);
+    ambientMaterial(r, g, b); // base color stays constant
+    specularMaterial(min(255, r + 45), min(255, g + 45), min(255, b + 45)); // brighter specular for highlights
+    sphere(oOrbitalRadius, sphereDetail, sphereDetail);
     pop();
 
-    // Mặt cầu thứ hai
+    // Sphere for atom 1
     push();
     translate(atoms[1].pos.x, atoms[1].pos.y, 0);
     rotateY(clSphereRotation2);
-    noStroke(); // Bỏ đường viền
-    fill(blendedSphereColor);
-    sphere(oOrbitalRadius, sphereDetail, sphereDetail); // Tăng độ chi tiết
+    noStroke();
+    shininess(85);
+    ambientMaterial(r, g, b);
+    specularMaterial(min(255, r + 45), min(255, g + 45), min(255, b + 45));
+    sphere(oOrbitalRadius, sphereDetail, sphereDetail);
     pop();
 }
 
